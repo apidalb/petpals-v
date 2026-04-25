@@ -883,7 +883,7 @@ footer {
 .dashboard-header h1 {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--white);
+  color: var(--text);
 }
 
 .dashboard-header p {
@@ -944,7 +944,8 @@ footer {
 
 .card-header h2 {
   font-size: 1rem;
-  color: var(--white);
+  font-weight: 700;
+  color: var(--text);
 }
 
 .card-header a {
@@ -981,7 +982,7 @@ footer {
 
 .name {
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
 }
 
 .meta {

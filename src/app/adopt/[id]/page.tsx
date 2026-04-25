@@ -67,6 +67,7 @@ export default function AdoptPage() {
   useEffect(() => {
     if (!authReady) return
     if (!user) router.replace('/login')
+    else if (user.role === 'admin') router.replace('/admin')
   }, [authReady, user, router])
 
   if (!authReady) return null
@@ -111,10 +112,19 @@ export default function AdoptPage() {
       const { error } = await supabase
         .from('adoptions')
         .insert({
-          user_id: userId,
-          pet_id:  pet.id,
-          status:  'Pending',
-          note:    motivation,
+          user_id:                userId,
+          pet_id:                 pet.id,
+          status:                 'Pending',
+          note:                   motivation,
+          full_name:              pendingData.fullName  || null,
+          phone:                  pendingData.phone     || null,
+          address:                pendingData.address   || null,
+          home_type:              pendingData.homeType  || null,
+          rented_house:           pendingData.rentedHouse === 'yes',
+          have_yard:              pendingData.yard      === 'yes',
+          owned_before:           pendingData.ownedBefore === 'yes',
+          other_pet_types:        pendingData.jenis     || null,
+          maintenance_costs_ready: pendingData.maintenanceCosts === 'yes',
         })
 
       if (!error) {
@@ -212,24 +222,25 @@ export default function AdoptPage() {
 
               {/* Pet Experience */}
               <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '.95rem', fontWeight: 700, marginBottom: '16px' }}>Pet Experience</h3>
+                <h3 style={{ fontSize: '.95rem', fontWeight: 700, marginBottom: '4px' }}>Pet Experience</h3>
+                <p style={{ fontSize: '.78rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Opsional — isi jika relevan</p>
                 <div className="f-group">
-                  <label className="f-label">Owned Pet Before <span style={{ color: 'var(--red)' }}>*</span></label>
+                  <label className="f-label">Owned Pet Before</label>
                   <div className="radio-group">
-                    <label className="radio-chip"><input type="radio" name="ownedBefore" value="yes" required /> Yes</label>
+                    <label className="radio-chip"><input type="radio" name="ownedBefore" value="yes" /> Yes</label>
                     <label className="radio-chip"><input type="radio" name="ownedBefore" value="no"  /> No</label>
                   </div>
                 </div>
                 <div className="f-group">
-                  <label className="f-label">Have a Yard <span style={{ color: 'var(--red)' }}>*</span></label>
+                  <label className="f-label">Currently Have Other Pets</label>
                   <div className="radio-group">
-                    <label className="radio-chip"><input type="radio" name="haveYard" value="yes" required /> Yes</label>
+                    <label className="radio-chip"><input type="radio" name="haveYard" value="yes" /> Yes</label>
                     <label className="radio-chip"><input type="radio" name="haveYard" value="no"  /> No</label>
                   </div>
                 </div>
                 <div className="f-group">
-                  <label className="f-label">Jenis <span style={{ color: 'var(--red)' }}>*</span></label>
-                  <input className="f-input" placeholder="ketik disini" value={jenis} onChange={e => setJenis(e.target.value)} required />
+                  <label className="f-label">Jenis hewan lain yang dimiliki</label>
+                  <input className="f-input" placeholder="Contoh: kucing, kelinci (opsional)" value={jenis} onChange={e => setJenis(e.target.value)} />
                 </div>
               </div>
 

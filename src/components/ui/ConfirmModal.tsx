@@ -17,7 +17,7 @@ export default function ConfirmModal({
     <div style={{
       position: 'fixed', inset: 0, zIndex: 3000,
       background: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '24px',
     }} onClick={onCancel}>
       <div style={{

@@ -4,6 +4,7 @@ import { useState, type FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
+import { createClient } from '@/lib/supabase/client'
 import UserSidebar from '@/components/ui/UserSidebar'
 import Footer from '@/components/layout/Footer'
 
@@ -30,8 +31,20 @@ export default function EditProfilePage() {
     const email     = (form.elements.namedItem('email')     as HTMLInputElement).value.trim()
     const phone     = (form.elements.namedItem('phone')     as HTMLInputElement).value.trim()
 
-    await new Promise(r => setTimeout(r, 700))
-    login({ ...user, name: `${firstName} ${lastName}`.trim(), email, phone })
+    const fullName = `${firstName} ${lastName}`.trim()
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: fullName, phone })
+      .eq('id', user.id!)
+
+    if (error) {
+      showToast('Gagal menyimpan profil. Coba lagi.', 'err')
+      setLoading(false)
+      return
+    }
+
+    login({ ...user, name: fullName, email, phone })
     showToast('Profil berhasil diperbarui!', 'ok')
     router.push('/profile')
   }

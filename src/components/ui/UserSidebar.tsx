@@ -6,9 +6,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 
 const NAV = [
-  { href: '/profile',              icon: '👤', label: 'Profile'    },
-  { href: '/profile/favourites',   icon: '🤍', label: 'Favourites' },
-  { href: '/profile/adoptions',    icon: '✉️', label: 'Adoption'   },
+  { href: '/profile',              icon: '👤', label: 'Profile'         },
+  { href: '/profile/favourites',   icon: '🤍', label: 'Favourites'      },
+  { href: '/profile/adoptions',    icon: '📋', label: 'My Applications' },
 ]
 
 export default function UserSidebar() {
@@ -29,6 +29,7 @@ export default function UserSidebar() {
       background: '#fff', borderRadius: '12px',
       border: '1px solid var(--border)',
       padding: '16px', alignSelf: 'flex-start',
+      position: 'sticky', top: 'calc(var(--nav-h, 72px) + 24px)',
     }}>
       {NAV.map(n => (
         <Link key={n.href} href={n.href} style={{ textDecoration: 'none' }}>

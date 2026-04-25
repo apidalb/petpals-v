@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import type { Pet, PetStatus, PetType } from '@/types'
 import { useToast } from '@/context/ToastContext'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { createClient } from '@/lib/supabase/client'
-import { PET_IMAGES_BUCKET } from '@/lib/supabase/storage'
+import { PET_IMAGES_BUCKET, buildPetImagePath, isAllowedPetImageType, isAllowedPetImageSize } from '@/lib/supabase/storage'
 
 type DbPet = {
   id: string
@@ -13,7 +13,12 @@ type DbPet = {
   type: string | null
   breed: string | null
   age_years: number | null
+  gender: string | null
+  weight: string | null
+  location: string | null
   status: string | null
+  vaccinated: boolean | null
+  neutered: boolean | null
   image_url: string | null
   description: string | null
 }
@@ -34,12 +39,12 @@ function mapDbPetToPet(row: DbPet): Pet {
     type,
     breed: row.breed ?? '-',
     age: row.age_years != null ? `${row.age_years} years` : '-',
-    gender: 'Unknown',
-    weight: '-',
-    location: 'Unknown',
+    gender: row.gender ?? 'Unknown',
+    weight: row.weight ?? '-',
+    location: row.location ?? 'Semarang',
     status,
-    vaccinated: false,
-    neutered: false,
+    vaccinated: row.vaccinated ?? false,
+    neutered: row.neutered ?? false,
     img: row.image_url ?? '/login-dog.png',
     desc: row.description ?? 'No description yet.',
   }
@@ -57,6 +62,7 @@ export default function AdminAnimalsPage() {
   const [editPet, setEditPet]     = useState<Pet | null>(null)
   const [deleteId, setDeleteId]   = useState<number | string | null>(null)
   const [saving, setSaving]       = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
 
   // Form state
   const emptyForm = { name: '', type: 'Dog' as PetType, breed: '', age: '', gender: 'Male', weight: '', location: 'Semarang', status: 'Available' as PetStatus, vaccinated: false, neutered: false, img: '', desc: '' }
@@ -67,7 +73,7 @@ export default function AdminAnimalsPage() {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('pets')
-        .select('id, name, type, breed, age_years, status, image_url, description')
+        .select('id, name, type, breed, age_years, gender, weight, location, status, vaccinated, neutered, image_url, description')
         .order('created_at', { ascending: false })
 
       if (error || !data) {
@@ -82,13 +88,39 @@ export default function AdminAnimalsPage() {
     fetchPets()
   }, [showToast])
 
-  const openAdd = () => { setEditPet(null); setForm(emptyForm); setShowModal(true) }
-  const openEdit = (p: Pet) => { setEditPet(p); setForm({ ...p }); setShowModal(true) }
+  const openAdd  = () => { setEditPet(null); setForm(emptyForm); setImageFile(null); setShowModal(true) }
+  const openEdit = (p: Pet) => { setEditPet(p); setForm({ ...p }); setImageFile(null); setShowModal(true) }
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.breed.trim()) { showToast('Nama dan breed wajib diisi.', 'err'); return }
     setSaving(true)
     const supabase = createClient()
+
+    // Upload gambar jika ada file yang dipilih
+    let imageUrl: string | null = form.img || null
+    if (imageFile) {
+      if (!isAllowedPetImageType(imageFile.type)) {
+        showToast('Format tidak didukung. Gunakan JPEG, PNG, atau WebP.', 'err')
+        setSaving(false)
+        return
+      }
+      if (!isAllowedPetImageSize(imageFile.size)) {
+        showToast('Ukuran gambar maksimal 5MB.', 'err')
+        setSaving(false)
+        return
+      }
+      const path = buildPetImagePath(imageFile.name)
+      const { error: uploadError } = await supabase.storage
+        .from(PET_IMAGES_BUCKET)
+        .upload(path, imageFile, { upsert: true })
+      if (uploadError) {
+        showToast('Gagal upload gambar. Coba lagi.', 'err')
+        setSaving(false)
+        return
+      }
+      const { data: urlData } = supabase.storage.from(PET_IMAGES_BUCKET).getPublicUrl(path)
+      imageUrl = urlData.publicUrl
+    }
 
     if (editPet) {
       const { error } = await supabase
@@ -98,8 +130,13 @@ export default function AdminAnimalsPage() {
           type: form.type,
           breed: form.breed,
           age_years: getAgeYears(form.age),
+          gender: form.gender || 'Unknown',
+          weight: form.weight || null,
+          location: form.location || null,
           status: form.status,
-          image_url: form.img || null,
+          vaccinated: form.vaccinated,
+          neutered: form.neutered,
+          image_url: imageUrl,
           description: form.desc || null,
         })
         .eq('id', String(editPet.id))
@@ -120,11 +157,16 @@ export default function AdminAnimalsPage() {
           type: form.type,
           breed: form.breed,
           age_years: getAgeYears(form.age),
+          gender: form.gender || 'Unknown',
+          weight: form.weight || null,
+          location: form.location || null,
           status: form.status,
-          image_url: form.img || null,
+          vaccinated: form.vaccinated,
+          neutered: form.neutered,
+          image_url: imageUrl,
           description: form.desc || null,
         })
-        .select('id, name, type, breed, age_years, status, image_url, description')
+        .select('id, name, type, breed, age_years, gender, weight, location, status, vaccinated, neutered, image_url, description')
         .single()
 
       if (error || !data) {
@@ -170,7 +212,7 @@ export default function AdminAnimalsPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.03em', marginBottom: '4px' }}>Animals</h1>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '4px' }}>Animals</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{pets.length} hewan terdaftar</p>
         </div>
         <button className="btn btn-primary" onClick={openAdd}>+ Tambah Hewan</button>
@@ -178,10 +220,17 @@ export default function AdminAnimalsPage() {
 
       {/* Table */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: '35%' }} />
+            <col style={{ width: '13%' }} />
+            <col style={{ width: '13%' }} />
+            <col style={{ width: '17%' }} />
+            <col style={{ width: '22%' }} />
+          </colgroup>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Animal', 'Type', 'Age', 'Status', 'Vaccinated', 'Actions'].map(h => (
+              {['Animal', 'Type', 'Age', 'Status', 'Actions'].map(h => (
                 <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '.75rem', fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
               ))}
             </tr>
@@ -194,7 +243,7 @@ export default function AdminAnimalsPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.img} alt={p.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
                     <div>
-                      <div style={{ fontSize: '.875rem', fontWeight: 600, color: 'var(--white)' }}>{p.name}</div>
+                      <div style={{ fontSize: '.875rem', fontWeight: 600, color: 'var(--text)' }}>{p.name}</div>
                       <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{p.breed}</div>
                     </div>
                   </div>
@@ -204,12 +253,14 @@ export default function AdminAnimalsPage() {
                 <td style={{ padding: '14px 16px' }}>
                   <span style={{ fontSize: '.75rem', fontWeight: 600, color: statusColors[p.status] }}>{p.status}</span>
                 </td>
-                <td style={{ padding: '14px 16px', fontSize: '.85rem', color: p.vaccinated ? 'var(--teal)' : 'var(--text-dim)' }}>
-                  {p.vaccinated ? '✅' : '—'}
-                </td>
                 <td style={{ padding: '14px 16px' }}>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: '.78rem' }} onClick={() => openEdit(p)}>Edit</button>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: '5px 12px', fontSize: '.78rem', opacity: p.status === 'Adopted' ? 0.45 : 1 }}
+                      onClick={() => openEdit(p)}
+                      title={p.status === 'Adopted' ? 'Hewan sudah diadopsi' : undefined}
+                    >Edit</button>
                     <button
                       style={{ padding: '5px 12px', fontSize: '.78rem', borderRadius: '8px', border: '1px solid rgba(248,113,113,.3)', background: 'rgba(248,113,113,.08)', color: 'var(--red)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
                       onClick={() => setDeleteId(p.id)}
@@ -226,7 +277,7 @@ export default function AdminAnimalsPage() {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-2)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--white)', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)', marginBottom: '20px' }}>
               {editPet ? `Edit ${editPet.name}` : 'Tambah Hewan Baru'}
             </h2>
             <div className="f-row">
@@ -266,9 +317,19 @@ export default function AdminAnimalsPage() {
             <div className="f-row">
               <div className="f-group">
                 <label className="f-label">Status</label>
-                <select className="f-select" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as PetStatus }))}>
+                <select
+                  className="f-select"
+                  value={form.status}
+                  disabled={editPet?.status === 'Adopted'}
+                  onChange={e => setForm(f => ({ ...f, status: e.target.value as PetStatus }))}
+                >
                   <option>Available</option><option>Adopted</option><option>In Process</option>
                 </select>
+                {editPet?.status === 'Adopted' && (
+                  <p style={{ marginTop: '4px', fontSize: '.74rem', color: 'var(--red)' }}>
+                    Status tidak dapat diubah — hewan sudah diadopsi.
+                  </p>
+                )}
               </div>
               <div className="f-group">
                 <label className="f-label">Lokasi</label>
@@ -276,11 +337,34 @@ export default function AdminAnimalsPage() {
               </div>
             </div>
             <div className="f-group">
-              <label className="f-label">URL Foto</label>
-              <input className="f-input" value={form.img} onChange={e => setForm(f => ({ ...f, img: e.target.value }))} placeholder="https://..." />
+              <label className="f-label">Foto Hewan</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="f-input"
+                style={{ padding: '6px' }}
+                onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+              />
+              {imageFile && (
+                <p style={{ marginTop: '4px', fontSize: '.74rem', color: 'var(--teal)' }}>
+                  ✓ {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              )}
+              {!imageFile && form.img && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={form.img} alt="preview" style={{ marginTop: '8px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
+              )}
               <p style={{ marginTop: '6px', fontSize: '.74rem', color: 'var(--text-dim)' }}>
-                Storage bucket siap: <strong>{PET_IMAGES_BUCKET}</strong>
+                Atau isi URL langsung (jika tidak upload file):
               </p>
+              <input
+                className="f-input"
+                value={imageFile ? '' : form.img}
+                onChange={e => { setImageFile(null); setForm(f => ({ ...f, img: e.target.value })) }}
+                placeholder="https://..."
+                disabled={!!imageFile}
+                style={{ marginTop: '6px', opacity: imageFile ? 0.4 : 1 }}
+              />
             </div>
             <div className="f-group">
               <label className="f-label">Deskripsi</label>

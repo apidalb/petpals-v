@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { createClient } from '@/lib/supabase/client'
 import UserSidebar from '@/components/ui/UserSidebar'
 import Footer from '@/components/layout/Footer'
 import type { Adoption } from '@/types'
@@ -36,9 +37,43 @@ export default function AdoptionsPage() {
   useEffect(() => {
     if (!authReady) return
     if (!user) { router.replace('/login'); return }
-    try {
-      setApps(JSON.parse(localStorage.getItem('pp_apps') || '[]'))
-    } catch {}
+
+    const loadApps = async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('adoptions')
+        .select('id, pet_id, status, note, created_at, pets(name, breed, image_url)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error || !data) return
+
+      const mapped: Adoption[] = data.map((row: {
+        id: string
+        pet_id: string
+        status: 'Pending' | 'Approved' | 'Rejected'
+        note: string | null
+        created_at: string
+        pets: { name: string; breed: string; image_url: string | null } | Array<{ name: string; breed: string; image_url: string | null }> | null
+      }) => {
+        const pet = Array.isArray(row.pets) ? row.pets[0] : row.pets
+        return {
+          id: row.id,
+          petId: row.pet_id,
+          petName: pet?.name || 'Pet',
+          petImg: pet?.image_url || '/login-dog.png',
+          petBreed: pet?.breed || '-',
+          housing: '-',
+          otherPets: '-',
+          motivation: row.note || '-',
+          status: row.status,
+          date: row.created_at,
+        }
+      })
+      setApps(mapped)
+    }
+
+    void loadApps()
   }, [authReady, user, router])
 
   if (!authReady) return null

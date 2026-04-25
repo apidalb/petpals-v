@@ -99,27 +99,33 @@ export default function Navbar() {
                     {user.email}
                   </div>
                   <hr className="drop-sep" />
-                   {user?.role === 'admin' && (
-                   <>
-                     <Link href="/admin" className="drop-item" onClick={() => setDropOpen(false)}>
+                  {user?.role === 'admin' ? (
+                    <>
+                      <Link href="/admin" className="drop-item" onClick={() => setDropOpen(false)}>
                         🛠️ Admin Dashboard
                       </Link>
                       <hr className="drop-sep" />
-                      </>
+                      <button className="drop-item danger" onClick={handleLogout}>
+                        🚪 Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/profile" className="drop-item" onClick={() => setDropOpen(false)}>
+                        👤 Profile
+                      </Link>
+                      <Link href="/profile/favourites" className="drop-item" onClick={() => setDropOpen(false)}>
+                        🤍 Favourites
+                      </Link>
+                      <Link href="/profile/adoptions" className="drop-item" onClick={() => setDropOpen(false)}>
+                        📋 My Applications
+                      </Link>
+                      <hr className="drop-sep" />
+                      <button className="drop-item danger" onClick={handleLogout}>
+                        🚪 Logout
+                      </button>
+                    </>
                   )}
-                  <Link href="/profile" className="drop-item" onClick={() => setDropOpen(false)}>
-                    👤 Profile
-                  </Link>
-                  <Link href="/profile/adoptions" className="drop-item" onClick={() => setDropOpen(false)}>
-                    📋 My Applications
-                  </Link>
-                  <Link href="/profile/favourites" className="drop-item" onClick={() => setDropOpen(false)}>
-                    🤍 Favourites
-                  </Link>
-                  <hr className="drop-sep" />
-                  <button className="drop-item danger" onClick={handleLogout}>
-                    🚪 Logout
-                  </button>
                 </div>
               )}
             </div>

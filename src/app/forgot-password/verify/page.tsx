@@ -1,110 +1,94 @@
 'use client'
 
-import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import Footer from '@/components/layout/Footer'
+import { createClient } from '@/lib/supabase/client'
 
-export default function VerifyCodePage() {
-  const router   = useRouter()
-  const [otp, setOtp]       = useState(['', '', '', '', ''])
-  const [timer, setTimer]   = useState(58)
-  const [loading, setLoading] = useState(false)
-  const inputs = useRef<(HTMLInputElement | null)[]>([])
+function VerifyContent() {
+  const searchParams = useSearchParams()
+  const email        = searchParams.get('email') ?? ''
+  const [resending, setResending] = useState(false)
+  const [resent,    setResent]    = useState(false)
 
-  // Countdown timer
-  useEffect(() => {
-    if (timer <= 0) return
-    const interval = setInterval(() => setTimer(t => t - 1), 1000)
-    return () => clearInterval(interval)
-  }, [timer])
-
-  const handleChange = (i: number, val: string) => {
-    if (!/^\d*$/.test(val)) return
-    const next = [...otp]
-    next[i] = val.slice(-1)
-    setOtp(next)
-    if (val && i < 4) inputs.current[i + 1]?.focus()
+  const handleResend = async () => {
+    if (!email) return
+    setResending(true)
+    const supabase   = createClient()
+    const redirectTo = `${window.location.origin}/forgot-password/new-password`
+    await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+    setResending(false)
+    setResent(true)
   }
 
-  const handleKey = (i: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otp[i] && i > 0) {
-      inputs.current[i - 1]?.focus()
-    }
-  }
+  return (
+    <div className="auth-form-wrap" style={{ textAlign: 'center' }}>
+      <div className="auth-logo">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-petpals-black.png" alt="PetPals" style={{ height: '52px', width: 'auto', mixBlendMode: 'multiply' }} />
+      </div>
 
-  const handleSubmit = async () => {
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 700))
-    router.push('/forgot-password/new-password')
-  }
+      {/* Icon */}
+      <div style={{ fontSize: '3rem', margin: '8px 0 16px' }}>&#9993;</div>
 
-  const formatTime = (s: number) => `0:${s.toString().padStart(2, '0')}`
+      <h1 className="auth-h" style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '10px' }}>
+        Check your email
+      </h1>
 
+      <p style={{ fontSize: '.875rem', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.6' }}>
+        We sent a password reset link to
+      </p>
+      {email && (
+        <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: '24px', fontSize: '.95rem' }}>
+          {email}
+        </p>
+      )}
+
+      <p style={{ fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: '1.6' }}>
+        Open the email and click the <strong>Reset Password</strong> link. The link will expire in 1 hour.
+        Check your spam folder if you don&apos;t see it.
+      </p>
+
+      {resent ? (
+        <div className="alert alert-ok" style={{ marginBottom: '16px' }}>
+          Email terkirim ulang!
+        </div>
+      ) : (
+        <p style={{ fontSize: '.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+          Didn&apos;t receive the email?{' '}
+          <button
+            onClick={handleResend}
+            disabled={resending || !email}
+            style={{ background: 'none', border: 'none', color: 'var(--green)', cursor: 'pointer', fontWeight: 600, fontSize: '.82rem', fontFamily: 'inherit', padding: 0 }}
+          >
+            {resending ? 'Sending…' : 'Click to resend'}
+          </button>
+        </p>
+      )}
+
+      <Link href="/login" style={{ fontSize: '.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+        &#8592; Back to Login
+      </Link>
+    </div>
+  )
+}
+
+export default function VerifyPage() {
   return (
     <>
       <div className="auth-layout">
-        {/* Form side */}
         <div className="auth-form-side">
-          <div className="auth-form-wrap">
-            <div className="auth-logo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-petpals-black.png" alt="PetPals" style={{ height: '52px', width: 'auto', mixBlendMode: 'multiply' }} />
-            </div>
-
-            <h1 className="auth-h" style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '10px' }}>
-              Code Verificaction
-            </h1>
-            <p style={{ fontSize: '.875rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6' }}>
-              Enter the verification code we just sent on your email address.
-            </p>
-
-            {/* Success message */}
-            <p className="otp-success">The email was sent succesfuly.</p>
-
-            {/* OTP Inputs */}
-            <div className="otp-wrap">
-              {otp.map((v, i) => (
-                <input
-                  key={i}
-                  ref={el => { inputs.current[i] = el }}
-                  className="otp-input"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={v}
-                  onChange={e => handleChange(i, e.target.value)}
-                  onKeyDown={e => handleKey(i, e)}
-                  autoFocus={i === 0}
-                />
-              ))}
-            </div>
-
-            {/* Timer */}
-            <p className="otp-timer">
-              {timer > 0
-                ? `The email will be resent in ${formatTime(timer)}`
-                : <span style={{ color: 'var(--green)', cursor: 'pointer' }} onClick={() => setTimer(58)}>Resend email</span>
-              }
-            </p>
-
-            <button
-              className="btn btn-outline-dark btn-full"
-              onClick={handleSubmit}
-              disabled={loading || otp.some(v => !v)}
-            >
-              {loading ? 'Verifying…' : 'Send Code'}
-            </button>
-
-          </div>
+          <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }}>Loading…</div>}>
+            <VerifyContent />
+          </Suspense>
         </div>
-
-        {/* Image side */}
         <div className="auth-img-side">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/login-dog.png" alt="Dog" />
         </div>
       </div>
-
       <Footer />
     </>
   )

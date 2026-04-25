@@ -8,7 +8,8 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
 export default function AdminDashboardPage() {
-  const [apps, setApps] = useState<Adoption[]>([])
+  const [recentApps, setRecentApps] = useState<Adoption[]>([])
+  const [pending, setPending] = useState(0)
   const [totalAnimals, setTotalAnimals] = useState(0)
   const [available, setAvailable] = useState(0)
   const [adopted, setAdopted] = useState(0)
@@ -16,15 +17,43 @@ export default function AdminDashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-  if (!authReady) return
-
-  if (!user || user.role !== 'admin') {
-    router.replace('/') 
-  }
-}, [user, authReady, router])
+    if (!authReady) return
+    if (!user || user.role !== 'admin') {
+      router.replace('/')
+    }
+  }, [user, authReady, router])
 
   useEffect(() => {
-    try { setApps(JSON.parse(localStorage.getItem('pp_apps') || '[]')) } catch {}
+    const fetchAdoptions = async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('adoptions')
+        .select('id, pet_id, status, note, created_at, pets(name, image_url, breed)')
+        .order('created_at', { ascending: false })
+
+      if (!data) return
+
+      setPending(data.filter(a => a.status === 'Pending').length)
+
+      const mapped: Adoption[] = data.slice(0, 5).map((row: {
+        id: string; pet_id: string; status: 'Pending' | 'Approved' | 'Rejected'
+        note: string | null; created_at: string
+        pets: { name: string; breed: string; image_url: string | null } | Array<{ name: string; breed: string; image_url: string | null }> | null
+      }) => {
+        const pet = Array.isArray(row.pets) ? row.pets[0] : row.pets
+        return {
+          id: row.id, petId: row.pet_id,
+          petName: pet?.name || 'Pet',
+          petImg: pet?.image_url || '/login-dog.png',
+          petBreed: pet?.breed || '-',
+          housing: '-', otherPets: '-',
+          motivation: row.note || '-',
+          status: row.status, date: row.created_at,
+        }
+      })
+      setRecentApps(mapped)
+    }
+    void fetchAdoptions()
   }, [])
 
   useEffect(() => {
@@ -49,16 +78,12 @@ export default function AdminDashboardPage() {
     fetchPetStats()
   }, [])
 
-  const pending       = apps.filter(a => a.status === 'Pending').length
-
   const stats = [
-    { icon: '🐾', label: 'Total Animals',     value: totalAnimals, color: 'var(--teal)'   },
-    { icon: '✅', label: 'Available',          value: available,    color: '#4ade80'       },
-    { icon: '🏡', label: 'Adopted',            value: adopted,      color: 'var(--yellow)' },
-    { icon: '📋', label: 'Pending Requests',   value: pending,      color: 'var(--red)'    },
+    { icon: '🐾', label: 'Total Animals',   value: totalAnimals, color: 'var(--text)'   },
+    { icon: '✅', label: 'Available',        value: available,    color: '#16a34a'       },
+    { icon: '🏡', label: 'Adopted',          value: adopted,      color: 'var(--yellow)' },
+    { icon: '📋', label: 'Pending Request',  value: pending,      color: 'var(--red)'    },
   ]
-
-  const recentApps = apps.slice(0, 5)
 
   return (
   <div className="admin-content fade-in">
@@ -94,18 +119,16 @@ export default function AdminDashboardPage() {
         <div className="adoption-list">
           {recentApps.map((app) => (
             <div key={app.id} className="adoption-item">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={app.petImg} alt={app.petName} />
-
               <div className="info">
                 <div className="name">{app.petName}</div>
+                <div className="meta">{app.petBreed}</div>
                 <div className="meta">
-                  {new Date(app.date).toLocaleDateString("id-ID")}
+                  Submitted on {new Date(app.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 </div>
               </div>
-
-              <span className={`status ${app.status.toLowerCase()}`}>
-                {app.status}
-              </span>
+              <span className={`status ${app.status.toLowerCase()}`}>{app.status}</span>
             </div>
           ))}
         </div>
