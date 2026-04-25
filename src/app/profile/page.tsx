@@ -9,11 +9,13 @@ import UserSidebar from '@/components/ui/UserSidebar'
 import Footer from '@/components/layout/Footer'
 
 type FavPreview = { id: string; name: string; img: string; age: string; location: string }
+type ProfileData = { phone: string | null; city: string | null; state: string | null }
 
 export default function ProfilePage() {
   const { user, authReady } = useAuth()
   const router = useRouter()
-  const [favPets, setFavPets] = useState<FavPreview[]>([])
+  const [favPets, setFavPets]     = useState<FavPreview[]>([])
+  const [profile, setProfile]     = useState<ProfileData | null>(null)
 
   useEffect(() => {
     if (!authReady) return
@@ -21,6 +23,14 @@ export default function ProfilePage() {
 
     const loadFavs = async () => {
       const supabase = createClient()
+
+      // Fetch profile data (city, state, phone)
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('phone, city, state')
+        .eq('id', user.id)
+        .maybeSingle()
+      setProfile(profileData ?? null)
       const { data } = await supabase
         .from('favorites')
         .select('pet_id, pets(id, name, image_url, age_years, location)')
@@ -79,7 +89,11 @@ export default function ProfilePage() {
                     {(user as { phone?: string }).phone && (
                       <p style={{ fontSize: '.875rem', color: 'var(--text-muted)', marginBottom: '3px' }}>{(user as { phone?: string }).phone}</p>
                     )}
-                    <p style={{ fontSize: '.875rem', color: 'var(--text-muted)' }}>Semarang, Jawa Tengah</p>
+                    {(profile?.city || profile?.state) && (
+                      <p style={{ fontSize: '.875rem', color: 'var(--text-muted)' }}>
+                        {[profile.city, profile.state].filter(Boolean).join(', ')}
+                      </p>
+                    )}
                   </div>
                   <Link href="/profile/edit">
                     <button className="btn btn-primary">Edit Profile</button>
