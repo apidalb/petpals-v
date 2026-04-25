@@ -123,14 +123,14 @@ export default function AdminAdoptionsPage() {
 
       {loading ? (
         <div className="empty">
-          <h3>Memuat pengajuan...</h3>
-          <p>Tunggu sebentar, data sedang diambil dari database.</p>
+          <span className="empty-icon">🐾</span>
+          <h3>Loading applications...</h3>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty">
-          <span className="empty-icon" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '12px', opacity: .4 }}>--</span>
-          <h3>Tidak ada pengajuan</h3>
-          <p>Belum ada pengajuan adopsi dengan status ini.</p>
+          <span className="empty-icon">🐾</span>
+          <h3>No applications found</h3>
+          <p>There are no adoption requests with this status.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

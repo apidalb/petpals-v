@@ -10,20 +10,19 @@ import { createClient } from '@/lib/supabase/client'
 interface PetCardProps {
   pet: Pet
   initialFav?: boolean
+  showFav?: boolean
+  onFavChange?: (petId: string, isFav: boolean) => void
 }
 
-export default function PetCard({ pet, initialFav = false }: PetCardProps) {
-  const [fav, setFav] = useState(initialFav)
+export default function PetCard({ pet, initialFav = false, showFav = true, onFavChange }: PetCardProps) {
+  const [fav, setFav]       = useState(initialFav)
   const [loading, setLoading] = useState(false)
-  const { user } = useAuth()
-  const { showToast } = useToast()
+  const { user }            = useAuth()
+  const { showToast }       = useToast()
 
   const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault()
-    if (!user) {
-      showToast('Login dulu untuk menyimpan favorit.', 'err')
-      return
-    }
+    if (!user) { showToast('Login dulu untuk menyimpan favorit.', 'err'); return }
     if (loading) return
     setLoading(true)
     const supabase = createClient()
@@ -33,7 +32,9 @@ export default function PetCard({ pet, initialFav = false }: PetCardProps) {
     } else {
       await supabase.from('favorites').insert({ user_id: user.id, pet_id: String(pet.id) })
     }
-    setFav(v => !v)
+    const next = !fav
+    setFav(next)
+    onFavChange?.(String(pet.id), next)
     setLoading(false)
   }
 
@@ -55,21 +56,23 @@ export default function PetCard({ pet, initialFav = false }: PetCardProps) {
               📍 {pet.location}
             </div>
           </Link>
-          <button
-            className="pet-card-fav"
-            onClick={toggleFav}
-            disabled={loading}
-            style={{
-              marginLeft: '8px', flexShrink: 0,
-              background: fav ? 'rgba(239,68,68,0.08)' : '#fff',
-              border: fav ? '1px solid rgba(239,68,68,0.25)' : '1px solid var(--border)',
-            }}
-            aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <span style={{ fontSize: '1rem', color: fav ? '#ef4444' : '#9ca3af' }}>
-              {fav ? '❤️' : '🤍'}
-            </span>
-          </button>
+          {showFav && (
+            <button
+              className="pet-card-fav"
+              onClick={toggleFav}
+              disabled={loading}
+              style={{
+                marginLeft: '8px', flexShrink: 0,
+                background: fav ? 'rgba(239,68,68,0.08)' : '#fff',
+                border: fav ? '1px solid rgba(239,68,68,0.25)' : '1px solid var(--border)',
+              }}
+              aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <span style={{ fontSize: '1rem', color: fav ? '#ef4444' : '#9ca3af' }}>
+                {fav ? '❤️' : '🤍'}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>

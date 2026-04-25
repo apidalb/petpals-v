@@ -8,7 +8,12 @@ type DbPetRow = {
   type: string | null
   breed: string | null
   age_years: number | null
+  gender: string | null
+  weight: string | null
+  location: string | null
   status: string | null
+  vaccinated: boolean | null
+  neutered: boolean | null
   description: string | null
   image_url: string | null
 }
@@ -30,12 +35,12 @@ function mapPet(row: DbPetRow): Pet {
     type: normalizeType(row.type),
     breed: row.breed ?? '-',
     age: row.age_years != null ? `${row.age_years} years` : '-',
-    gender: 'Unknown',
-    weight: '-',
-    location: 'Unknown',
+    gender: row.gender ?? '-',
+    weight: row.weight ?? '-',
+    location: row.location ?? '-',
     status: normalizeStatus(row.status),
-    vaccinated: false,
-    neutered: false,
+    vaccinated: row.vaccinated ?? false,
+    neutered: row.neutered ?? false,
     img: row.image_url ?? '/login-dog.png',
     desc: row.description ?? 'No description yet.',
   }
@@ -52,14 +57,14 @@ export async function GET(request: Request) {
   const supabase = createClient(supabaseUrl, supabaseAnonKey)
   const { searchParams } = new URL(request.url)
 
-  const q = (searchParams.get('q') || '').trim()
-  const type = (searchParams.get('type') || '').trim()
+  const q      = (searchParams.get('q')      || '').trim()
+  const type   = (searchParams.get('type')   || '').trim()
   const status = (searchParams.get('status') || '').trim()
-  const age = (searchParams.get('age') || '').trim()
+  const age    = (searchParams.get('age')    || '').trim()
 
   let query = supabase
     .from('pets')
-    .select('id, name, type, breed, age_years, status, description, image_url')
+    .select('id, name, type, breed, age_years, gender, weight, location, status, vaccinated, neutered, description, image_url')
     .order('created_at', { ascending: false })
 
   if (q) {
@@ -67,7 +72,7 @@ export async function GET(request: Request) {
     query = query.or(`name.ilike.%${escaped}%,breed.ilike.%${escaped}%`)
   }
 
-  if (type) query = query.eq('type', type)
+  if (type)   query = query.eq('type', type)
   if (status) query = query.eq('status', status)
 
   if (age === 'lt1') query = query.lt('age_years', 1)

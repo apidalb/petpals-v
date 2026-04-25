@@ -21,6 +21,8 @@ export default function PetDetailPage() {
   const { user } = useAuth()
   const [pet, setPet]               = useState<Pet | null>(null)
   const [hasApplied, setHasApplied] = useState(false)
+  const [isFav, setIsFav]           = useState(false)
+  const [favLoading, setFavLoading] = useState(false)
   const [activeImg, setActiveImg]   = useState(0)
   const [comment, setComment]       = useState('')
   const [comments, setComments]     = useState<Comment[]>([])
@@ -65,18 +67,25 @@ export default function PetDetailPage() {
   }, [id])
 
   useEffect(() => {
-    if (!user || !pet) return
+    if (!user || !pet || user.role === 'admin') return
+    const supabase = createClient()
+
     const checkApplied = async () => {
-      const supabase = createClient()
       const { data } = await supabase
-        .from('adoptions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('pet_id', String(pet.id))
-        .maybeSingle()
+        .from('adoptions').select('id')
+        .eq('user_id', user.id).eq('pet_id', String(pet.id)).maybeSingle()
       setHasApplied(!!data)
     }
+
+    const checkFav = async () => {
+      const { data } = await supabase
+        .from('favorites').select('id')
+        .eq('user_id', user.id).eq('pet_id', String(pet.id)).maybeSingle()
+      setIsFav(!!data)
+    }
+
     void checkApplied()
+    void checkFav()
   }, [user, pet])
 
   useEffect(() => {
@@ -92,6 +101,20 @@ export default function PetDetailPage() {
     }
     void fetchComments()
   }, [pet])
+
+  const toggleFav = async () => {
+    if (!user || favLoading) return
+    setFavLoading(true)
+    const supabase = createClient()
+    if (isFav) {
+      await supabase.from('favorites').delete()
+        .eq('user_id', user.id).eq('pet_id', String(pet!.id))
+    } else {
+      await supabase.from('favorites').insert({ user_id: user.id, pet_id: String(pet!.id) })
+    }
+    setIsFav(v => !v)
+    setFavLoading(false)
+  }
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -150,9 +173,27 @@ export default function PetDetailPage() {
             <div className="detail-info">
               <div className="detail-name-row">
                 <h1 className="detail-name">{pet.name}</h1>
-                <span className={`detail-badge ${pet.status === 'Adopted' ? 'adopted' : pet.status === 'In Process' ? 'process' : ''}`}>
-                  {pet.status}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className={`detail-badge ${pet.status === 'Adopted' ? 'adopted' : pet.status === 'In Process' ? 'process' : ''}`}>
+                    {pet.status}
+                  </span>
+                  {user && user.role !== 'admin' && (
+                    <button
+                      onClick={toggleFav}
+                      disabled={favLoading}
+                      style={{
+                        width: '36px', height: '36px', borderRadius: '50%',
+                        border: isFav ? '1px solid rgba(239,68,68,0.25)' : '1px solid var(--border)',
+                        background: isFav ? 'rgba(239,68,68,0.08)' : '#fff',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1.1rem', flexShrink: 0,
+                      }}
+                      aria-label={isFav ? 'Remove from favourites' : 'Add to favourites'}
+                    >
+                      {isFav ? '❤️' : '🤍'}
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="detail-location">📍 {pet.location}</div>
               <hr className="detail-divider" />
