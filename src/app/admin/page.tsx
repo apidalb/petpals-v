@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
     
     <div className="dashboard-header">
       <h1>Dashboard</h1>
-      <p>Overview platform PetPALS</p>
+      <p>PetPALS platform overview</p>
     </div>
 
     
@@ -114,7 +114,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {recentApps.length === 0 ? (
-        <div className="empty">📋 Belum ada pengajuan adopsi</div>
+        <div className="empty">📋 No adoption requests yet</div>
       ) : (
         <div className="adoption-list">
           {recentApps.map((app) => (

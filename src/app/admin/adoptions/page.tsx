@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import type { Adoption, AdoptionStatus } from '@/types'
@@ -54,7 +54,7 @@ export default function AdminAdoptionsPage() {
     if (error) {
       setApps(prevApps)
       setSelected(prev => { const o = prevApps.find(a => a.id === prev?.id); return o ?? prev })
-      showToast('Gagal update status pengajuan.', 'err')
+      showToast('Failed to update application status.', 'err')
       return
     }
 
@@ -64,7 +64,7 @@ export default function AdminAdoptionsPage() {
       await supabase.from('pets').update({ status: petStatus }).eq('id', String(adoption.petId))
     }
 
-    showToast(`Pengajuan ${status === 'Approved' ? 'disetujui' : 'ditolak'}.`, status === 'Approved' ? 'ok' : 'err')
+    showToast(`Pengajuan ${status === 'Approved' ? 'approved' : 'rejected'}.`, status === 'Approved' ? 'ok' : 'err')
   }
 
   const filtered = filter === 'All' ? apps : apps.filter(a => a.status === filter)
@@ -86,7 +86,7 @@ export default function AdminAdoptionsPage() {
     <>
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '4px' }}>Adoptions</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{apps.length} total pengajuan</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{apps.length} total applications</p>
       </div>
 
       {/* Filter pills */}
@@ -178,7 +178,7 @@ export default function AdminAdoptionsPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }} onClick={() => setSelected(null)}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.2)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1a1a2e' }}>Detail Pengajuan</h2>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1a1a2e' }}>Application Detail</h2>
               <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }} onClick={() => setSelected(null)}>x</button>
             </div>
             <div style={{ display: 'flex', gap: '14px', marginBottom: '20px' }}>

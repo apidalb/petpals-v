@@ -78,7 +78,7 @@ export default function AdminAnimalsPage() {
 
       if (error || !data) {
         setPets([])
-        showToast('Gagal memuat data hewan dari server.', 'err')
+        showToast('Failed to load animals from server.', 'err')
         return
       }
 
@@ -92,7 +92,7 @@ export default function AdminAnimalsPage() {
   const openEdit = (p: Pet) => { setEditPet(p); setForm({ ...p }); setImageFile(null); setShowModal(true) }
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.breed.trim()) { showToast('Nama dan breed wajib diisi.', 'err'); return }
+    if (!form.name.trim() || !form.breed.trim()) { showToast('Name and breed are required.', 'err'); return }
     setSaving(true)
     const supabase = createClient()
 
@@ -100,12 +100,12 @@ export default function AdminAnimalsPage() {
     let imageUrl: string | null = form.img || null
     if (imageFile) {
       if (!isAllowedPetImageType(imageFile.type)) {
-        showToast('Format tidak didukung. Gunakan JPEG, PNG, atau WebP.', 'err')
+        showToast('Unsupported format. Use JPEG, PNG, or WebP.', 'err')
         setSaving(false)
         return
       }
       if (!isAllowedPetImageSize(imageFile.size)) {
-        showToast('Ukuran gambar maksimal 5MB.', 'err')
+        showToast('Image size must be under 5MB.', 'err')
         setSaving(false)
         return
       }
@@ -114,7 +114,7 @@ export default function AdminAnimalsPage() {
         .from(PET_IMAGES_BUCKET)
         .upload(path, imageFile, { upsert: true })
       if (uploadError) {
-        showToast('Gagal upload gambar. Coba lagi.', 'err')
+        showToast('Failed to upload image. Please try again.', 'err')
         setSaving(false)
         return
       }
@@ -142,13 +142,13 @@ export default function AdminAnimalsPage() {
         .eq('id', String(editPet.id))
 
       if (error) {
-        showToast('Gagal memperbarui data hewan.', 'err')
+        showToast('Failed to update animal.', 'err')
         setSaving(false)
         return
       }
 
       setPets(prev => prev.map(p => p.id === editPet.id ? { ...form, id: editPet.id } : p))
-      showToast(`Data ${form.name} berhasil diperbarui.`, 'ok')
+      showToast(`Data ${form.name} updated successfully.`, 'ok')
     } else {
       const { data, error } = await supabase
         .from('pets')
@@ -170,13 +170,13 @@ export default function AdminAnimalsPage() {
         .single()
 
       if (error || !data) {
-        showToast('Gagal menambahkan hewan baru.', 'err')
+        showToast('Failed to add new animal.', 'err')
         setSaving(false)
         return
       }
 
       setPets(prev => [mapDbPetToPet(data), ...prev])
-      showToast(`${form.name} berhasil ditambahkan.`, 'ok')
+      showToast(`${form.name} added successfully.`, 'ok')
     }
 
     setSaving(false)
@@ -191,14 +191,14 @@ export default function AdminAnimalsPage() {
       .eq('id', String(id))
 
     if (error) {
-      showToast('Gagal menghapus data hewan.', 'err')
+      showToast('Failed to delete animal.', 'err')
       setDeleteId(null)
       return
     }
 
     setPets(prev => prev.filter(p => p.id !== id))
     setDeleteId(null)
-    showToast('Data hewan berhasil dihapus.', 'ok')
+    showToast('Animal deleted successfully.', 'ok')
   }
 
   const statusColors: Record<PetStatus, string> = {
@@ -213,9 +213,9 @@ export default function AdminAnimalsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
         <div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '4px' }}>Animals</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{pets.length} hewan terdaftar</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{pets.length} animals registered</p>
         </div>
-        <button className="btn btn-primary" onClick={openAdd}>+ Tambah Hewan</button>
+        <button className="btn btn-primary" onClick={openAdd}>+ Add Animal</button>
       </div>
 
       {/* Table */}
@@ -264,7 +264,7 @@ export default function AdminAnimalsPage() {
                     <button
                       style={{ padding: '5px 12px', fontSize: '.78rem', borderRadius: '8px', border: '1px solid rgba(248,113,113,.3)', background: 'rgba(248,113,113,.08)', color: 'var(--red)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
                       onClick={() => setDeleteId(p.id)}
-                    >Hapus</button>
+                    >Delete</button>
                   </div>
                 </td>
               </tr>
@@ -278,12 +278,12 @@ export default function AdminAnimalsPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-2)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)', marginBottom: '20px' }}>
-              {editPet ? `Edit ${editPet.name}` : 'Tambah Hewan Baru'}
+              {editPet ? `Edit ${editPet.name}` : 'Add New Animal'}
             </h2>
             <div className="f-row">
               <div className="f-group">
                 <label className="f-label">Nama *</label>
-                <input className="f-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Nama hewan" />
+                <input className="f-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Animal name" />
               </div>
               <div className="f-group">
                 <label className="f-label">Breed *</label>
@@ -327,7 +327,7 @@ export default function AdminAnimalsPage() {
                 </select>
                 {editPet?.status === 'Adopted' && (
                   <p style={{ marginTop: '4px', fontSize: '.74rem', color: 'var(--red)' }}>
-                    Status tidak dapat diubah — hewan sudah diadopsi.
+                    Status cannot be changed — this animal has been adopted.
                   </p>
                 )}
               </div>
@@ -355,7 +355,7 @@ export default function AdminAnimalsPage() {
                 <img src={form.img} alt="preview" style={{ marginTop: '8px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
               )}
               <p style={{ marginTop: '6px', fontSize: '.74rem', color: 'var(--text-dim)' }}>
-                Atau isi URL langsung (jika tidak upload file):
+                Or enter URL directly (if not uploading a file):
               </p>
               <input
                 className="f-input"
@@ -383,7 +383,7 @@ export default function AdminAnimalsPage() {
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Batal</button>
               <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'Menyimpan...' : editPet ? 'Simpan Perubahan' : 'Tambah Hewan'}
+                {saving ? 'Saving...' : editPet ? 'Save Changes' : 'Add Animal'}
               </button>
             </div>
           </div>
@@ -393,8 +393,8 @@ export default function AdminAnimalsPage() {
       {/* Delete Confirm Modal */}
       {deleteId !== null && (
         <ConfirmModal
-          title="Hapus Hewan"
-          message="Apakah kamu yakin ingin menghapus data hewan ini? Tindakan ini tidak bisa dibatalkan."
+          title="Delete Hewan"
+          message="Are you sure you want to delete this animal? This action cannot be undone."
           onConfirm={() => handleDelete(deleteId)}
           onCancel={() => setDeleteId(null)}
         />

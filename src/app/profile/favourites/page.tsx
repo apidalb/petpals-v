@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -88,7 +88,7 @@ export default function FavouritesPage() {
               <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '24px' }}>My Favourites</h2>
 
               {loading ? (
-                <div className="empty"><span className="empty-icon">⏳</span><h3>Memuat...</h3></div>
+                <div className="empty"><span className="empty-icon">⏳</span><h3>Loading...</h3></div>
               ) : favs.length === 0 ? (
                 <div className="empty">
                   <span className="empty-icon">🤍</span>

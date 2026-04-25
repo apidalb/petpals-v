@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, type FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -40,8 +40,13 @@ export default function EditProfilePage() {
       .update({ full_name: fullName, phone })
       .eq('id', user.id!)
 
+    // Sync nama di semua komentar user agar real-time
+    if (fullName !== user.name) {
+      await supabase.from('comments').update({ author: fullName }).eq('user_id', user.id!)
+    }
+
     if (profileError) {
-      showToast('Gagal menyimpan profil. Coba lagi.', 'err')
+      showToast('Failed to save profile. Please try again.', 'err')
       setLoading(false)
       return
     }
@@ -50,12 +55,12 @@ export default function EditProfilePage() {
     if (email !== user.email) {
       const { error: emailError } = await supabase.auth.updateUser({ email })
       if (emailError) {
-        showToast('Profil disimpan, tapi email gagal diubah: ' + emailError.message, 'err')
+        showToast('Profile saved, but email change failed: ' + emailError.message, 'err')
       } else {
-        showToast('Email diubah — cek inbox untuk konfirmasi.', 'ok')
+        showToast('Email updated — check your inbox to confirm.', 'ok')
       }
     } else {
-      showToast('Profil berhasil diperbarui!', 'ok')
+      showToast('Profile updated successfully!', 'ok')
     }
 
     login({ ...user, name: fullName, email, phone })

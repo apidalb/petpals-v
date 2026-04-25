@@ -89,8 +89,8 @@ export default function AdoptPage() {
     const form = e.currentTarget
     const data: Record<string, string> = {}
     const homeType = (form.elements.namedItem('homeType') as HTMLSelectElement).value
-    if (!homeType) { showToast('Pilih tipe rumah.', 'err'); return }
-    if (motivation.trim().length < 5) { showToast('Isi motivasi adopsi kamu.', 'err'); return }
+    if (!homeType) { showToast('Please select a home type.', 'err'); return }
+    if (motivation.trim().length < 5) { showToast('Please enter your adoption motivation.', 'err'); return }
     Array.from(form.elements).forEach(el => {
       const input = el as HTMLInputElement
       if (input.name && input.value) data[input.name] = input.value
@@ -128,13 +128,13 @@ export default function AdoptPage() {
         })
 
       if (!error) {
-        showToast(`Pengajuan adopsi ${pet.name} berhasil! 🎉`, 'ok')
+        showToast(`Adoption request for ${pet.name} submitted!`, 'ok')
         router.push('/profile/adoptions')
         return
       }
     }
 
-    showToast('Gagal kirim pengajuan ke server. Coba lagi ya.', 'err')
+    showToast('Failed to submit request. Please try again.', 'err')
     setLoading(false)
   }
 
@@ -223,7 +223,7 @@ export default function AdoptPage() {
               {/* Pet Experience */}
               <div style={{ marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '.95rem', fontWeight: 700, marginBottom: '4px' }}>Pet Experience</h3>
-                <p style={{ fontSize: '.78rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Opsional — isi jika relevan</p>
+                <p style={{ fontSize: '.78rem', color: 'var(--text-muted)', marginBottom: '16px' }}>Optional — fill in if relevant</p>
                 <div className="f-group">
                   <label className="f-label">Owned Pet Before</label>
                   <div className="radio-group">
@@ -239,8 +239,8 @@ export default function AdoptPage() {
                   </div>
                 </div>
                 <div className="f-group">
-                  <label className="f-label">Jenis hewan lain yang dimiliki</label>
-                  <input className="f-input" placeholder="Contoh: kucing, kelinci (opsional)" value={jenis} onChange={e => setJenis(e.target.value)} />
+                  <label className="f-label">Types of other pets you own</label>
+                  <input className="f-input" placeholder="e.g. cats, rabbits (optional)" value={jenis} onChange={e => setJenis(e.target.value)} />
                 </div>
               </div>
 
@@ -249,7 +249,7 @@ export default function AdoptPage() {
                 <h3 style={{ fontSize: '.95rem', fontWeight: 700, marginBottom: '16px' }}>Adoption</h3>
                 <div className="f-group">
                   <label className="f-label">Motivation <span style={{ color: 'var(--red)' }}>*</span></label>
-                  <input className="f-input" placeholder="ketik disini" value={motivation} onChange={e => setMotivation(e.target.value)} required />
+                  <input className="f-input" placeholder="Type here..." value={motivation} onChange={e => setMotivation(e.target.value)} required />
                 </div>
                 <div className="f-group">
                   <label className="f-label">Ready for the maintenance costs? <span style={{ color: 'var(--red)' }}>*</span></label>
@@ -260,9 +260,9 @@ export default function AdoptPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
                   {[
-                    'Saya berkomitmen merawat hewan dengan baik',
-                    'Tidak akan menelantarkan hewan',
-                    'Bersedia mengikuti aturan adopsi',
+                    'I commit to taking good care of the pet',
+                    'I will not abandon the pet',
+                    'I agree to follow the adoption rules',
                   ].map(text => (
                     <label key={text} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '.85rem', color: 'var(--text-2)', cursor: 'pointer' }}>
                       <input type="checkbox" required style={{ accentColor: 'var(--green)', width: '15px', height: '15px' }} />

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
@@ -49,9 +49,9 @@ export default function AdminCommentsPage() {
   const handleDelete = async (id: string) => {
     const supabase = createClient()
     const { error } = await supabase.from('comments').delete().eq('id', id)
-    if (error) { showToast('Gagal menghapus komentar.', 'err'); return }
+    if (error) { showToast('Failed to delete comment.', 'err'); return }
     setComments(prev => prev.filter(c => c.id !== id))
-    showToast('Komentar dihapus.', 'ok')
+    showToast('Comment deleted.', 'ok')
   }
 
   return (
@@ -60,7 +60,7 @@ export default function AdminCommentsPage() {
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', marginBottom: '4px' }}>
           Comments
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{comments.length} total komentar</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '.875rem' }}>{comments.length} total comments</p>
       </div>
 
       {loading ? (
@@ -102,7 +102,7 @@ export default function AdminCommentsPage() {
                 onClick={() => handleDelete(c.id)}
                 style={{ flexShrink: 0, padding: '5px 12px', fontSize: '.78rem', borderRadius: '8px', border: '1px solid rgba(248,113,113,.3)', background: 'rgba(248,113,113,.08)', color: 'var(--red)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
               >
-                Hapus
+                Delete
               </button>
             </div>
           ))}

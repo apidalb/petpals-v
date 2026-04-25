@@ -72,8 +72,13 @@ export async function GET(request: Request) {
     query = query.or(`name.ilike.%${escaped}%,breed.ilike.%${escaped}%`)
   }
 
-  if (type)   query = query.eq('type', type)
-  if (status) query = query.eq('status', status)
+  if (type) query = query.eq('type', type)
+  if (status) {
+    query = query.eq('status', status)
+  } else {
+    // Sembunyikan hewan Adopted dari listing default
+    query = query.neq('status', 'Adopted')
+  }
 
   if (age === 'lt1') query = query.lt('age_years', 1)
   if (age === '1-2') query = query.gte('age_years', 1).lte('age_years', 2)

@@ -46,7 +46,7 @@ export default function HomePage() {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('pets')
-        .select('id, name, age_years, image_url, status')
+        .select('id, name, age_years, location, image_url, status')
         .eq('status', 'Available')
         .order('created_at', { ascending: false })
         .limit(4)
@@ -60,7 +60,7 @@ export default function HomePage() {
         id: row.id,
         name: row.name ?? 'Unnamed Pet',
         age: row.age_years != null ? `${row.age_years} years` : '-',
-        location: 'Unknown',
+        location: (row.location as string | null) ?? '-',
         img: row.image_url ?? '/login-dog.png',
       }))
 
