@@ -30,12 +30,20 @@ export default function LoginPage() {
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
   const [showPass, setShowPass] = useState(false)
+  const [remember, setRemember] = useState(false)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
+      // Simpan preferensi remember me sebelum createClient() dipanggil
+      if (remember) {
+        localStorage.setItem('pp_remember', '1')
+      } else {
+        localStorage.removeItem('pp_remember')
+      }
+
       const supabase = createClient()
       const form  = e.currentTarget
       const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim()
@@ -136,7 +144,12 @@ export default function LoginPage() {
 
             <div className="auth-extra">
             <div className="f-check">
-              <input type="checkbox" id="remember" />
+              <input
+                type="checkbox"
+                id="remember"
+                checked={remember}
+                onChange={e => setRemember(e.target.checked)}
+              />
               <label htmlFor="remember">Remember me for 30 days</label>
             </div>
           

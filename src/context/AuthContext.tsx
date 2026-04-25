@@ -105,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null)
       sessionStorage.removeItem('pp_user')
+      localStorage.removeItem('pp_remember')
       setAuthReady(true)
     }
   }, [])

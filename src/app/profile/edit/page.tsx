@@ -33,19 +33,32 @@ export default function EditProfilePage() {
 
     const fullName = `${firstName} ${lastName}`.trim()
     const supabase = createClient()
-    const { error } = await supabase
+
+    // Update name & phone di tabel profiles
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({ full_name: fullName, phone })
       .eq('id', user.id!)
 
-    if (error) {
+    if (profileError) {
       showToast('Gagal menyimpan profil. Coba lagi.', 'err')
       setLoading(false)
       return
     }
 
+    // Update email di Supabase Auth jika berubah
+    if (email !== user.email) {
+      const { error: emailError } = await supabase.auth.updateUser({ email })
+      if (emailError) {
+        showToast('Profil disimpan, tapi email gagal diubah: ' + emailError.message, 'err')
+      } else {
+        showToast('Email diubah — cek inbox untuk konfirmasi.', 'ok')
+      }
+    } else {
+      showToast('Profil berhasil diperbarui!', 'ok')
+    }
+
     login({ ...user, name: fullName, email, phone })
-    showToast('Profil berhasil diperbarui!', 'ok')
     router.push('/profile')
   }
 

@@ -30,12 +30,19 @@ export default function RegisterPage() {
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
   const [showPass, setShowPass] = useState(false)
+  const [remember, setRemember] = useState(false)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
+      if (remember) {
+        localStorage.setItem('pp_remember', '1')
+      } else {
+        localStorage.removeItem('pp_remember')
+      }
+
       const supabase = createClient()
       const form  = e.currentTarget
       const name  = (form.elements.namedItem('name') as HTMLInputElement).value.trim()
@@ -135,7 +142,12 @@ export default function RegisterPage() {
               {loading ? 'Creating…' : 'Create Account'}
             </button>
             <div className="f-check">
-              <input type="checkbox" id="remember2" />
+              <input
+                type="checkbox"
+                id="remember2"
+                checked={remember}
+                onChange={e => setRemember(e.target.checked)}
+              />
               <label htmlFor="remember2">Remember me for 30 days</label>
             </div>
           </form>
