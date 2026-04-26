@@ -17,13 +17,16 @@ export default function AdminAdoptionsPage() {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('adoptions')
-        .select('id, pet_id, status, note, created_at, pets(name, breed, image_url)')
+        .select('id, pet_id, status, note, home_type, other_pet_types, full_name, phone, address, created_at, pets(name, breed, image_url)')
         .order('created_at', { ascending: false })
 
       if (error || !data) { setLoading(false); return }
 
       const mapped: Adoption[] = data.map((row: {
-        id: string; pet_id: string; status: AdoptionStatus; note: string | null; created_at: string
+        id: string; pet_id: string; status: AdoptionStatus
+        note: string | null; home_type: string | null; other_pet_types: string | null
+        full_name: string | null; phone: string | null; address: string | null
+        created_at: string
         pets: { name: string; breed: string; image_url: string | null } | Array<{ name: string; breed: string; image_url: string | null }> | null
       }) => {
         const pet = Array.isArray(row.pets) ? row.pets[0] : row.pets
@@ -32,8 +35,10 @@ export default function AdminAdoptionsPage() {
           petName: pet?.name || 'Pet',
           petImg: pet?.image_url || '/login-dog.png',
           petBreed: pet?.breed || '-',
-          housing: '-', otherPets: '-',
+          housing: row.home_type || '-',
+          otherPets: row.other_pet_types || '-',
           motivation: row.note || '-',
+          experience: [row.full_name, row.phone, row.address].filter(Boolean).join(' · ') || undefined,
           status: row.status, date: row.created_at,
         }
       })
@@ -192,10 +197,12 @@ export default function AdminAdoptionsPage() {
                 </div>
               </div>
             </div>
-            {[
-              ['Motivasi',    selected.motivation],
-              ['Other Pets',  selected.otherPets],
-            ].map(([k, v]) => (
+            {([
+              ['Motivation',   selected.motivation],
+              ['Home Type',    selected.housing],
+              ['Other Pets',   selected.otherPets !== '-' ? selected.otherPets : null],
+              ['Applicant',    selected.experience || null],
+            ] as [string, string | null][]).filter(([, v]) => v).map(([k, v]) => (
               <div key={k} style={{ marginBottom: '14px' }}>
                 <div style={{ fontSize: '.72rem', fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: '4px' }}>{k}</div>
                 <div style={{ fontSize: '.875rem', color: '#374151', lineHeight: '1.6' }}>{v}</div>

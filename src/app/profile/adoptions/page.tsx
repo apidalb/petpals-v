@@ -119,14 +119,16 @@ export default function AdoptionsPage() {
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>
                           {app.petName}
                         </div>
-                        <div style={{ fontSize: '.82rem', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                        <div style={{ fontSize: '.82rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
                           {app.petBreed}
                         </div>
-                        <div style={{ fontSize: '.82rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                          {app.housing}
-                        </div>
+                        {app.motivation && app.motivation !== '-' && (
+                          <div style={{ fontSize: '.8rem', color: 'var(--text-muted)', marginBottom: '6px', fontStyle: 'italic' }}>
+                            &quot;{app.motivation}&quot;
+                          </div>
+                        )}
                         <div style={{ fontSize: '.75rem', color: 'var(--text-dim)' }}>
-                          Submintted on {new Date(app.date).toLocaleDateString('en-US', {
+                          Submitted on {new Date(app.date).toLocaleDateString('en-US', {
                             month: 'long', day: 'numeric', year: 'numeric'
                           })}
                         </div>

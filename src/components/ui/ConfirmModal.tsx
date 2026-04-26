@@ -8,8 +8,8 @@ interface ConfirmModalProps {
 }
 
 export default function ConfirmModal({
-  title   = 'Confirm Change',
-  message = 'Please confirm your action',
+  title   = 'Confirm Action',
+  message = 'Please confirm your action.',
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -17,49 +17,57 @@ export default function ConfirmModal({
     <div style={{
       position: 'fixed', inset: 0, zIndex: 3000,
       background: 'rgba(0,0,0,0.5)',
+      backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '24px',
     }} onClick={onCancel}>
       <div style={{
-        background: '#fff', borderRadius: '12px',
-        padding: '24px', width: '280px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-        position: 'relative',
+        background: '#fff', borderRadius: '16px',
+        padding: '40px 48px', width: '100%', maxWidth: '480px',
+        position: 'relative', textAlign: 'center',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }} onClick={e => e.stopPropagation()}>
 
         {/* Close */}
         <button onClick={onCancel} style={{
-          position: 'absolute', top: '12px', right: '14px',
+          position: 'absolute', top: '16px', right: '20px',
           background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: '1rem', color: '#6b7280', lineHeight: 1,
-        }}>×</button>
+          fontSize: '1.3rem', color: '#374151', lineHeight: 1,
+        }}>&#10005;</button>
 
         {/* Title */}
-        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1a2e', marginBottom: '6px' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1a1a2e', marginBottom: '8px', letterSpacing: '-0.02em' }}>
           {title}
-        </h3>
-        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '16px' }} />
-        <p style={{ fontSize: '.8rem', color: '#6b7280', marginBottom: '20px' }}>{message}</p>
+        </h2>
+        <p style={{ fontSize: '.875rem', color: '#6b7280', marginBottom: '24px' }}>{message}</p>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '28px' }} />
 
         {/* Yes */}
         <button onClick={onConfirm} style={{
-          width: '100%', padding: '11px', borderRadius: '8px',
+          width: '100%', padding: '16px', borderRadius: '12px',
           background: '#1a1a2e', color: '#fff', border: 'none',
-          fontWeight: 600, fontSize: '.9rem', cursor: 'pointer',
-          fontFamily: 'inherit', marginBottom: '10px',
+          fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
+          fontFamily: 'inherit', marginBottom: '14px',
           transition: 'opacity .15s',
-        }}>Yes</button>
+        }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+        >Yes</button>
 
-        <div style={{ textAlign: 'center', fontSize: '.78rem', color: '#9ca3af', marginBottom: '10px' }}>or</div>
+        <p style={{ fontSize: '.85rem', color: '#9ca3af', marginBottom: '14px', fontStyle: 'italic' }}>or</p>
 
         {/* No */}
         <button onClick={onCancel} style={{
-          width: '100%', padding: '11px', borderRadius: '8px',
+          width: '100%', padding: '16px', borderRadius: '12px',
           background: '#fff', color: '#1a1a2e',
           border: '1.5px solid #1a1a2e',
-          fontWeight: 600, fontSize: '.9rem', cursor: 'pointer',
+          fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
           fontFamily: 'inherit', transition: 'all .15s',
-        }}>No</button>
+        }}
+          onMouseEnter={e => { (e.currentTarget.style.background = '#f9fafb') }}
+          onMouseLeave={e => { (e.currentTarget.style.background = '#fff') }}
+        >No</button>
       </div>
     </div>
   )
