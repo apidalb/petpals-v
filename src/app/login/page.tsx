@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
@@ -55,11 +55,11 @@ export default function LoginPage() {
 
       if (signInError || !data.user) {
         if (signInError?.code === 'email_provider_disabled') {
-          setError('Login email/password belum aktif di Supabase (Auth > Providers > Email).')
+          setError('Email/password login is not active in Supabase (Auth > Providers > Email).')
         } else if (signInError?.message) {
           setError(signInError.message)
         } else {
-          setError('Email atau password salah.')
+          setError('Invalid email or password.')
         }
         return
       }
@@ -96,13 +96,13 @@ export default function LoginPage() {
       const role = ((profile?.role as 'admin' | 'adopter') || 'adopter')
 
       login({ id: data.user.id, name, email: data.user.email ?? email, role })
-      showToast(`Selamat datang, ${name.split(' ')[0]}! 👋`, 'ok')
+      showToast(`Welcome back, ${name.split(' ')[0]}! 👋`, 'ok')
       router.push(role === 'admin' ? '/admin' : '/')
     } catch (err) {
       if (err instanceof Error && err.message === 'Request timeout') {
-        setError('Koneksi ke server terlalu lama. Coba lagi (cek internet/VPN/ad blocker).')
+        setError('Connection timed out. Please try again (check your internet/VPN/ad blocker).')
       } else {
-        setError('Terjadi kendala saat login. Coba refresh halaman.')
+        setError('An error occurred during sign-in. Please refresh the page.')
       }
     } finally {
       setLoading(false)

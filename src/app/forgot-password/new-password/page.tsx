@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
@@ -38,8 +38,8 @@ export default function NewPasswordPage() {
     const pass  = (form.elements.namedItem('password') as HTMLInputElement).value
     const pass2 = (form.elements.namedItem('confirm')  as HTMLInputElement).value
 
-    if (pass.length < 6) { setError('Password minimal 6 karakter.'); return }
-    if (pass !== pass2)  { setError('Password tidak cocok.'); return }
+    if (pass.length < 6) { setError('Password must be at least 6 characters.'); return }
+    if (pass !== pass2)  { setError('Passwords do not match.'); return }
 
     setLoading(true)
     const supabase = createClient()
@@ -53,7 +53,7 @@ export default function NewPasswordPage() {
 
     // Sign out so user logs in fresh with new password
     await supabase.auth.signOut()
-    showToast('Password berhasil direset! Silakan login.', 'ok')
+    showToast('Password reset successfully! Please log in.', 'ok')
     router.push('/login')
   }
 
@@ -76,7 +76,7 @@ export default function NewPasswordPage() {
 
             {!ready ? (
               <div className="alert" style={{ background: 'rgba(245,158,11,.08)', color: '#92400e', border: '1px solid rgba(245,158,11,.25)', padding: '14px 16px', borderRadius: '8px', fontSize: '.875rem' }}>
-                Memverifikasi link reset... Pastikan kamu membuka halaman ini dari link di email.
+                Verifying reset link... Make sure you opened this page from the link in your email.
               </div>
             ) : (
               <>

@@ -259,7 +259,7 @@ export default function AdminAnimalsPage() {
                       className="btn btn-secondary"
                       style={{ padding: '5px 12px', fontSize: '.78rem', opacity: p.status === 'Adopted' ? 0.45 : 1 }}
                       onClick={() => openEdit(p)}
-                      title={p.status === 'Adopted' ? 'Hewan sudah diadopsi' : undefined}
+                      title={p.status === 'Adopted' ? 'This animal has been adopted' : undefined}
                     >Edit</button>
                     <button
                       style={{ padding: '5px 12px', fontSize: '.78rem', borderRadius: '8px', border: '1px solid rgba(248,113,113,.3)', background: 'rgba(248,113,113,.08)', color: 'var(--red)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}

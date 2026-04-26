@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useState } from 'react'
@@ -22,7 +22,7 @@ export default function PetCard({ pet, initialFav = false, showFav = true, onFav
 
   const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault()
-    if (!user) { showToast('Login dulu untuk menyimpan favorit.', 'err'); return }
+    if (!user) { showToast('Please log in to save favourites.', 'err'); return }
     if (loading) return
     setLoading(true)
     const supabase = createClient()

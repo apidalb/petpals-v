@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
@@ -49,7 +49,7 @@ export default function RegisterPage() {
       const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim()
       const pass  = (form.elements.namedItem('password') as HTMLInputElement).value
       if (pass.length < 6) {
-        setError('Password minimal 6 karakter.')
+        setError('Password must be at least 6 characters.')
         return
       }
 
@@ -63,7 +63,7 @@ export default function RegisterPage() {
 
       if (signUpError) {
         if (signUpError.code === 'email_provider_disabled') {
-          setError('Signup email/password belum aktif di Supabase (Auth > Providers > Email).')
+          setError('Email/password sign-up is not active in Supabase (Auth > Providers > Email).')
         } else {
           setError(signUpError.message)
         }
@@ -80,24 +80,24 @@ export default function RegisterPage() {
         )
 
         if (upsertError) {
-          setError('Akun dibuat, tapi profil gagal disimpan. Coba login ulang.')
+          setError('Account created, but profile save failed. Please log in again.')
           router.push('/login')
           return
         }
 
         login({ id: userId, name, email, role: 'adopter' })
-        showToast('Akun berhasil dibuat! Selamat datang 🎉', 'ok')
+        showToast('Account created! Welcome 🎉', 'ok')
         router.push('/')
         return
       }
 
-      showToast('Akun dibuat. Cek email untuk verifikasi, lalu login.', 'ok')
+      showToast('Account created. Check your email to verify, then log in.', 'ok')
       router.push('/login')
     } catch (err) {
       if (err instanceof Error && err.message === 'Request timeout') {
-        setError('Koneksi ke server terlalu lama. Coba lagi.')
+        setError('Connection timed out. Please try again.')
       } else {
-        setError('Terjadi kendala saat register. Coba refresh halaman.')
+        setError('An error occurred during registration. Please refresh the page.')
       }
     } finally {
       setLoading(false)

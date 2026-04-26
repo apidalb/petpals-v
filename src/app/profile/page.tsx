@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -109,7 +109,7 @@ export default function ProfilePage() {
                 </div>
                 {favPets.length === 0 ? (
                   <p style={{ fontSize: '.85rem', color: 'var(--text-muted)' }}>
-                    Belum ada favorit. <Link href="/pets" style={{ color: 'var(--green)', textDecoration: 'underline' }}>Browse hewan →</Link>
+                    No favourites yet. <Link href="/pets" style={{ color: 'var(--green)', textDecoration: 'underline' }}>Browse pets →</Link>
                   </p>
                 ) : (
                   <div style={{ display: 'flex', gap: '16px' }}>
