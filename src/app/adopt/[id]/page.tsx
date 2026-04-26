@@ -32,7 +32,7 @@ export default function AdoptPage() {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('pets')
-        .select('id, name, type, breed, age_years, status, description, image_url')
+        .select('id, name, type, breed, age_years, gender, weight, location, status, vaccinated, neutered, description, image_url')
         .eq('id', routeId)
         .single()
 
@@ -51,12 +51,12 @@ export default function AdoptPage() {
         type: normalizedType as PetType,
         breed: data.breed ?? '-',
         age: data.age_years != null ? `${data.age_years} years` : '-',
-        gender: 'Unknown',
-        weight: '-',
-        location: 'Unknown',
+        gender: (data.gender as string | null) ?? '-',
+        weight: (data.weight as string | null) ?? '-',
+        location: (data.location as string | null) ?? '-',
         status,
-        vaccinated: false,
-        neutered: false,
+        vaccinated: (data.vaccinated as boolean | null) ?? false,
+        neutered: (data.neutered as boolean | null) ?? false,
         img: data.image_url ?? '/login-dog.png',
         desc: data.description ?? 'No description yet.',
       })
