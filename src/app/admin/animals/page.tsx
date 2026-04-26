@@ -282,17 +282,17 @@ export default function AdminAnimalsPage() {
             </h2>
             <div className="f-row">
               <div className="f-group">
-                <label className="f-label">Nama *</label>
+                <label className="f-label">Name *</label>
                 <input className="f-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Animal name" />
               </div>
               <div className="f-group">
                 <label className="f-label">Breed *</label>
-                <input className="f-input" value={form.breed} onChange={e => setForm(f => ({ ...f, breed: e.target.value }))} placeholder="Ras/jenis" />
+                <input className="f-input" value={form.breed} onChange={e => setForm(f => ({ ...f, breed: e.target.value }))} placeholder="Breed / type" />
               </div>
             </div>
             <div className="f-row">
               <div className="f-group">
-                <label className="f-label">Jenis</label>
+                <label className="f-label">Type</label>
                 <select className="f-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value as PetType }))}>
                   {['Dog', 'Cat', 'Bird', 'Reptile'].map(t => <option key={t}>{t}</option>)}
                 </select>
@@ -306,11 +306,11 @@ export default function AdminAnimalsPage() {
             </div>
             <div className="f-row">
               <div className="f-group">
-                <label className="f-label">Umur</label>
+                <label className="f-label">Age</label>
                 <input className="f-input" value={form.age} onChange={e => setForm(f => ({ ...f, age: e.target.value }))} placeholder="2 years" />
               </div>
               <div className="f-group">
-                <label className="f-label">Berat</label>
+                <label className="f-label">Weight</label>
                 <input className="f-input" value={form.weight} onChange={e => setForm(f => ({ ...f, weight: e.target.value }))} placeholder="10 kg" />
               </div>
             </div>
@@ -332,12 +332,12 @@ export default function AdminAnimalsPage() {
                 )}
               </div>
               <div className="f-group">
-                <label className="f-label">Lokasi</label>
+                <label className="f-label">Location</label>
                 <input className="f-input" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
               </div>
             </div>
             <div className="f-group">
-              <label className="f-label">Foto Hewan</label>
+              <label className="f-label">Photo</label>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -367,7 +367,7 @@ export default function AdminAnimalsPage() {
               />
             </div>
             <div className="f-group">
-              <label className="f-label">Deskripsi</label>
+              <label className="f-label">Description</label>
               <textarea className="f-textarea" rows={3} value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} />
             </div>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
@@ -381,7 +381,7 @@ export default function AdminAnimalsPage() {
               </label>
             </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Batal</button>
+              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
                 {saving ? 'Saving...' : editPet ? 'Save Changes' : 'Add Animal'}
               </button>
@@ -393,7 +393,7 @@ export default function AdminAnimalsPage() {
       {/* Delete Confirm Modal */}
       {deleteId !== null && (
         <ConfirmModal
-          title="Delete Hewan"
+          title="Delete Animal"
           message="Are you sure you want to delete this animal? This action cannot be undone."
           onConfirm={() => handleDelete(deleteId)}
           onCancel={() => setDeleteId(null)}

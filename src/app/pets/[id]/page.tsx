@@ -20,7 +20,7 @@ export default function PetDetailPage() {
   const { id }   = useParams()
   const { user } = useAuth()
   const [pet, setPet]               = useState<Pet | null>(null)
-  const [hasApplied, setHasApplied] = useState(false)
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null)
   const [isFav, setIsFav]           = useState(false)
   const [favLoading, setFavLoading] = useState(false)
   const [activeImg, setActiveImg]   = useState(0)
@@ -72,9 +72,9 @@ export default function PetDetailPage() {
 
     const checkApplied = async () => {
       const { data } = await supabase
-        .from('adoptions').select('id')
+        .from('adoptions').select('id, status')
         .eq('user_id', user.id).eq('pet_id', String(pet.id)).maybeSingle()
-      setHasApplied(!!data)
+      setApplicationStatus(data?.status ?? null)
     }
 
     const checkFav = async () => {
@@ -211,20 +211,25 @@ export default function PetDetailPage() {
               <p className="detail-desc">{pet.desc}</p>
 
               {/* CTA */}
-              {pet.status === 'Available' && !hasApplied && (
+              {pet.status === 'Available' && !applicationStatus && (
                 user
                   ? <Link href={`/adopt/${pet.id}`}><button className="btn btn-primary btn-lg btn-full">Adopt Now</button></Link>
                   : <Link href="/login"><button className="btn btn-primary btn-lg btn-full">Sign In to Adopt</button></Link>
               )}
-              {hasApplied && (
+              {applicationStatus === 'Approved' && (
+                <div className="alert alert-ok">
+                  Congratulations! You have successfully adopted {pet.name}. Thank you for giving them a loving home.
+                </div>
+              )}
+              {applicationStatus && applicationStatus !== 'Approved' && (
                 <div className="alert alert-ok">
                   You have already applied!{' '}
                   <Link href="/profile/adoptions" style={{ textDecoration: 'underline' }}>View status</Link>
                 </div>
               )}
-              {pet.status === 'Adopted' && (
+              {pet.status === 'Adopted' && !applicationStatus && (
                 <div className="alert" style={{ background: 'var(--bg-gray)', color: 'var(--text-muted)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: '8px', fontSize: '.875rem' }}>
-                  {pet.name} has already been adopted.
+                  {pet.name} has already been adopted by another family.
                 </div>
               )}
 

@@ -12,8 +12,9 @@ import type { Pet, PetType, PetStatus } from '@/types'
 export default function FavouritesPage() {
   const { user, authReady } = useAuth()
   const router = useRouter()
-  const [favs, setFavs] = useState<Pet[]>([])
-  const [loading, setLoading] = useState(true)
+  const [favs, setFavs]               = useState<Pet[]>([])
+  const [adoptedByMe, setAdoptedByMe] = useState<Set<string>>(new Set())
+  const [loading, setLoading]         = useState(true)
 
   useEffect(() => {
     if (!authReady) return
@@ -21,37 +22,50 @@ export default function FavouritesPage() {
 
     const loadFavs = async () => {
       const supabase = createClient()
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('pet_id, pets(id, name, type, breed, age_years, gender, weight, location, status, image_url)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
 
-      if (error || !data) { setLoading(false); return }
+      // Fetch favorites + approved adoptions user secara paralel
+      const [favsRes, adoptionsRes] = await Promise.all([
+        supabase
+          .from('favorites')
+          .select('pet_id, pets(id, name, type, breed, age_years, gender, weight, location, status, image_url)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('adoptions')
+          .select('pet_id')
+          .eq('user_id', user.id)
+          .eq('status', 'Approved'),
+      ])
 
-      const pets: Pet[] = data.flatMap((row: { pet_id: string; pets: unknown }) => {
+      // Set IDs hewan yang berhasil diadopsi oleh user ini
+      const myAdoptedIds = new Set<string>(
+        (adoptionsRes.data ?? []).map((r: { pet_id: string }) => r.pet_id)
+      )
+      setAdoptedByMe(myAdoptedIds)
+
+      if (favsRes.error || !favsRes.data) { setLoading(false); return }
+
+      const pets: Pet[] = favsRes.data.flatMap((row: { pet_id: string; pets: unknown }) => {
           const p = (Array.isArray(row.pets) ? row.pets[0] : row.pets) as {
             id: string; name: string | null; type: string | null; breed: string | null
             age_years: number | null; gender: string | null; weight: string | null
             location: string | null; status: string | null; image_url: string | null
           } | null
           if (!p) return []
+
+          // Sembunyikan hewan Adopted yang diadopsi orang lain
+          if (p.status === 'Adopted' && !myAdoptedIds.has(p.id)) return []
+
           const type = ['Dog','Cat','Bird','Reptile'].includes(p.type ?? '') ? p.type as PetType : 'Reptile'
           const status = ['Available','Adopted','In Process'].includes(p.status ?? '') ? p.status as PetStatus : 'Available'
           const pet: Pet = {
-            id: p.id,
-            name: p.name ?? 'Pet',
-            type,
+            id: p.id, name: p.name ?? 'Pet', type,
             breed: p.breed ?? '-',
             age: p.age_years != null ? `${p.age_years} years` : '-',
-            gender: p.gender ?? 'Unknown',
-            weight: p.weight ?? '-',
-            location: p.location ?? '-',
-            status,
-            vaccinated: false,
-            neutered: false,
-            img: p.image_url ?? '/login-dog.png',
-            desc: '',
+            gender: p.gender ?? 'Unknown', weight: p.weight ?? '-',
+            location: p.location ?? '-', status,
+            vaccinated: false, neutered: false,
+            img: p.image_url ?? '/login-dog.png', desc: '',
           }
           return [pet]
         })
@@ -98,30 +112,47 @@ export default function FavouritesPage() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  {favs.map(p => (
-                    <div key={p.id} style={{ width: '150px', position: 'relative' }}>
-                      <button
-                        onClick={() => removeFav(p.id)}
-                        style={{
-                          position: 'absolute', top: '6px', right: '6px', zIndex: 1,
-                          background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
-                          borderRadius: '50%', width: '28px', height: '28px',
-                          cursor: 'pointer', fontSize: '.8rem', display: 'flex',
-                          alignItems: 'center', justifyContent: 'center',
-                        }}
-                        aria-label="Remove from favourites"
-                      >❤️</button>
-                      <Link href={`/pets/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={p.img} alt={p.name}
-                          style={{ width: '150px', height: '140px', objectFit: 'cover', borderRadius: '10px', marginBottom: '10px' }}
-                        />
-                        <div style={{ fontSize: '.95rem', fontWeight: 700, color: 'var(--text)', marginBottom: '3px' }}>{p.name}</div>
-                        <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{p.age} · {p.location}</div>
-                      </Link>
-                    </div>
-                  ))}
+                  {favs.map(p => {
+                    const isAdoptedByMe = adoptedByMe.has(String(p.id))
+                    return (
+                      <div key={p.id} style={{ width: '150px', position: 'relative' }}>
+                        {/* Badge adopted by user */}
+                        {isAdoptedByMe && (
+                          <div style={{
+                            position: 'absolute', top: '6px', left: '6px', zIndex: 1,
+                            background: 'rgba(34,197,94,.85)', color: '#fff',
+                            borderRadius: '6px', padding: '2px 7px',
+                            fontSize: '.65rem', fontWeight: 700,
+                          }}>
+                            Adopted by you
+                          </div>
+                        )}
+                        {/* Heart button — sembunyikan jika sudah diadopsi sendiri */}
+                        {!isAdoptedByMe && (
+                          <button
+                            onClick={() => removeFav(p.id)}
+                            style={{
+                              position: 'absolute', top: '6px', right: '6px', zIndex: 1,
+                              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                              borderRadius: '50%', width: '28px', height: '28px',
+                              cursor: 'pointer', fontSize: '.8rem', display: 'flex',
+                              alignItems: 'center', justifyContent: 'center',
+                            }}
+                            aria-label="Remove from favourites"
+                          >❤️</button>
+                        )}
+                        <Link href={`/pets/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={p.img} alt={p.name}
+                            style={{ width: '150px', height: '140px', objectFit: 'cover', borderRadius: '10px', marginBottom: '10px' }}
+                          />
+                          <div style={{ fontSize: '.95rem', fontWeight: 700, color: 'var(--text)', marginBottom: '3px' }}>{p.name}</div>
+                          <div style={{ fontSize: '.75rem', color: 'var(--text-muted)' }}>{p.age} · {p.location}</div>
+                        </Link>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
