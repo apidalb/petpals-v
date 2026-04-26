@@ -68,8 +68,9 @@ export async function GET(request: Request) {
     .order('created_at', { ascending: false })
 
   if (q) {
-    const escaped = q.replace(/[%_,]/g, '')
-    query = query.or(`name.ilike.%${escaped}%,breed.ilike.%${escaped}%`)
+    // Escape special chars, gunakan wildcard PostgREST (*) bukan SQL (%)
+    const safe = q.replace(/[*\\]/g, '')
+    query = query.or(`name.ilike.*${safe}*,breed.ilike.*${safe}*`)
   }
 
   if (type) query = query.eq('type', type)

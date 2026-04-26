@@ -40,14 +40,15 @@ function PetsPageContent() {
   const [pets, setPets]       = useState<Pet[]>([])
   const [favIds, setFavIds]   = useState<Set<string>>(new Set())
   const [search, setSearch]   = useState('')
-  const [species, setSpecies] = useState('')
+  // Inisialisasi langsung dari URL agar tidak ada double-fetch
+  const [species, setSpecies] = useState(() => searchParams.get('type') ?? '')
   const [ageFilter, setAgeFilter] = useState('')
   const [adoption, setAdoption]   = useState('')
   const [loading, setLoading]     = useState(true)
 
+  // Update species jika URL berubah setelah mount (e.g. navigasi dalam halaman)
   useEffect(() => {
-    const type = searchParams.get('type')
-    if (type) setSpecies(type)
+    setSpecies(searchParams.get('type') ?? '')
   }, [searchParams])
 
   // Fetch user's favorited pet IDs
