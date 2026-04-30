@@ -117,12 +117,6 @@ export default function RegisterPage() {
             Create an account to run wild through our curated experiences.
           </h1>
 
-          <button className="btn-google">
-            <span style={{ fontSize: '1rem' }}>G</span> Continue with Google
-          </button>
-
-          <div className="f-divider" style={{ margin: '16px 0' }}><span>or</span></div>
-
           {error && <div className="alert alert-err">{error}</div>}
 
           <form onSubmit={handleSubmit}>
