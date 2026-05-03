@@ -7,6 +7,11 @@ import Navbar from '@/components/layout/Navbar'
 export const metadata: Metadata = {
   title: 'PetPals - Platform Adopsi Hewan',
   description: 'Temukan sahabat berbulu impianmu dan berikan mereka rumah yang penuh kasih.',
+  icons: {
+    icon: '/logotitleweb.png',
+    shortcut: '/logotitleweb.png',
+    apple: '/logotitleweb.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

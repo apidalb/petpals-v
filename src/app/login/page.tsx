@@ -157,7 +157,7 @@ export default function LoginPage() {
             <Link href="/forgot-password" style={{ fontSize: '.82rem', color: 'var(--text-muted)' }}>Forgot Password?</Link>
           </div>
           <div className="auth-switch">
-            You do not have account yet? <Link href="/register">Sign In</Link>
+            You do not have account yet? <Link href="/register">Sign Up</Link>
           </div>
          </div>
          </div>
