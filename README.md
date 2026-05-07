@@ -46,3 +46,4 @@ Optional env override:
 ```bash
 NEXT_PUBLIC_SUPABASE_PETS_BUCKET=pet-images
 ```
+Fransiskus
